@@ -1,5 +1,12 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, Image } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Image,
+} from 'react-native';
 
 HEADER_MAX_HEIGHT = 120;
 HEADER_MIN_HEIGHT = 70;
@@ -7,16 +14,34 @@ PROFILE_IMAGE_MAX_HEIGHT = 80;
 PROFILE_IMAGE_MIN_HEIGHT = 40;
 
 export default function App() {
+  const [scrollY, setScrollY] = useState(new Animated.Value(0));
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+    outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}></View>
-      <ScrollView style={styles.avatar}>
+      <Animated.View
+        style={[styles.header, { height: headerHeight }]}
+      ></Animated.View>
+      <ScrollView
+        scrollEventThrottle={16}
+        style={styles.avatar}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+      >
         <View style={styles.imageContainer}>
           <Image source={require('./assets/me.jpg')} style={styles.image} />
         </View>
         <View>
           <Text style={styles.name}>José Arteaga</Text>
         </View>
+        <View style={{ height: 1000 }}></View>
       </ScrollView>
     </View>
   );
@@ -35,7 +60,6 @@ const styles = StyleSheet.create({
     right: 0,
     left: 0,
     backgroundColor: 'lightskyblue',
-    height: HEADER_MAX_HEIGHT,
   },
   image: {
     flex: 1,
