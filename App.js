@@ -2,22 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, Image } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-// // core Snoopy
-// import Snoopy from 'rn-snoopy';
-
-// // some Snoopy goodies we're going to use
-// import filter from 'rn-snoopy/stream/filter';
-
-// import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
-
-// //If you are using React 0.48 or below, then you should import:
-// //import EventEmitter from 'react-native/Libraries/EventEmitter/EventEmitter';
-
-// const emitter = new EventEmitter();
-
-// const events = Snoopy.stream(emitter);
-// filter({ method: 'updateView' }, true)(events).subscribe();
-
 HEADER_MAX_HEIGHT = 120;
 HEADER_MIN_HEIGHT = 70;
 PROFILE_IMAGE_MAX_HEIGHT = 80;
