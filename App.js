@@ -1,59 +1,142 @@
-import React, { useState } from 'react';
-import {
-  Animated,
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  Image,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, Image } from 'react-native';
+import Animated from 'react-native-reanimated';
+
+// // core Snoopy
+// import Snoopy from 'rn-snoopy';
+
+// // some Snoopy goodies we're going to use
+// import filter from 'rn-snoopy/stream/filter';
+
+// import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
+
+// //If you are using React 0.48 or below, then you should import:
+// //import EventEmitter from 'react-native/Libraries/EventEmitter/EventEmitter';
+
+// const emitter = new EventEmitter();
+
+// const events = Snoopy.stream(emitter);
+// filter({ method: 'updateView' }, true)(events).subscribe();
 
 HEADER_MAX_HEIGHT = 120;
 HEADER_MIN_HEIGHT = 70;
 PROFILE_IMAGE_MAX_HEIGHT = 80;
-PROFILE_IMAGE_MIN_HEIGHT = 40;
+PROFILE_IMAGE_MIN_HEIGHT = 50;
+
+const { Value, Extrapolate } = Animated;
 
 export default function App() {
-  const [scrollY, setScrollY] = useState(new Animated.Value(0));
+  const [scrollY] = useState(new Value(0));
+  const [headerHeight, setHeaderHeight] = useState();
+  const [profileImageHeight, setProfileImageHeight] = useState();
+  const [profileImageMarginTop, setProfileImageMarginTop] = useState();
+  const [headerZindex, setHeaderZindex] = useState();
+  const [headerTitleBottom, setHeaderTitleBottom] = useState();
 
-  const headerHeight = scrollY.interpolate({
-    inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
-    outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-    extrapolate: 'clamp',
-  });
+  useEffect(() => {
+    setHeaderHeight(
+      scrollY.interpolate({
+        inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+        outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
+        extrapolate: Extrapolate.CLAMP,
+      })
+    );
+
+    setProfileImageHeight(
+      scrollY.interpolate({
+        inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+        outputRange: [PROFILE_IMAGE_MAX_HEIGHT, PROFILE_IMAGE_MIN_HEIGHT],
+        extrapolate: Extrapolate.CLAMP,
+      })
+    );
+
+    setProfileImageMarginTop(
+      scrollY.interpolate({
+        inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+        outputRange: [
+          HEADER_MAX_HEIGHT - PROFILE_IMAGE_MAX_HEIGHT / 2,
+          HEADER_MAX_HEIGHT + 5,
+        ],
+        extrapolate: Extrapolate.CLAMP,
+      })
+    );
+
+    setHeaderZindex(
+      scrollY.interpolate({
+        inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT, 120],
+        outputRange: [0, 0, 1000],
+        extrapolate: Extrapolate.CLAMP,
+      })
+    );
+
+    setHeaderTitleBottom(
+      scrollY.interpolate({
+        inputRange: [
+          0,
+          HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT,
+          HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT + 5 + PROFILE_IMAGE_MIN_HEIGHT,
+          HEADER_MAX_HEIGHT -
+            HEADER_MIN_HEIGHT +
+            5 +
+            PROFILE_IMAGE_MIN_HEIGHT +
+            26,
+        ],
+        outputRange: [-1000, -1000, -1000, 5],
+        extrapolate: Extrapolate.CLAMP,
+      })
+    );
+  }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, shadowColor: 'white' }}>
       <Animated.View
-        style={[styles.header, { height: headerHeight }]}
-      ></Animated.View>
-      <ScrollView
-        scrollEventThrottle={16}
-        style={styles.avatar}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
+        style={[
+          styles.header,
+          {
+            height: headerHeight,
+            zIndex: headerZindex,
+            elevation: headerZindex,
+            alignItems: 'center',
+          },
+        ]}
       >
-        <View style={styles.imageContainer}>
+        <Animated.View
+          style={{ position: 'absolute', bottom: headerTitleBottom }}
+        >
+          <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>
+            José Arteaga
+          </Text>
+        </Animated.View>
+      </Animated.View>
+      <Animated.ScrollView
+        scrollEventThrottle={16}
+        style={{ flex: 1 }}
+        onScroll={Animated.event([
+          { nativeEvent: { contentOffset: { y: scrollY } } },
+        ])}
+      >
+        <Animated.View
+          style={[
+            styles.imageContainer,
+            {
+              height: profileImageHeight,
+              width: profileImageHeight,
+              marginTop: profileImageMarginTop,
+            },
+          ]}
+        >
           <Image source={require('./assets/me.jpg')} style={styles.image} />
-        </View>
+        </Animated.View>
         <View>
           <Text style={styles.name}>José Arteaga</Text>
         </View>
         <View style={{ height: 1000 }}></View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  avatar: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
   header: {
     position: 'absolute',
     top: 0,
@@ -67,13 +150,10 @@ const styles = StyleSheet.create({
     height: null,
   },
   imageContainer: {
-    height: PROFILE_IMAGE_MAX_HEIGHT,
-    width: PROFILE_IMAGE_MAX_HEIGHT,
     borderRadius: PROFILE_IMAGE_MAX_HEIGHT / 2,
     borderColor: 'white',
     borderWidth: 3,
     overflow: 'hidden',
-    marginTop: HEADER_MAX_HEIGHT - PROFILE_IMAGE_MAX_HEIGHT / 2,
     marginLeft: 10,
   },
   name: {
